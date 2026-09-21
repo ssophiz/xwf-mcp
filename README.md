@@ -70,3 +70,11 @@ transfer of a synthetic Korean filename. This is **not** an actual-XWF GUI test.
 - https://github.com/modelcontextprotocol/python-sdk
 
 No affiliation with or endorsement by X-Ways or any police agency.
+
+## AI client skill instructions
+
+Provider-neutral instructions for Claude project skills, ChatGPT project/app
+instructions, and other MCP clients are in [`XWF_MCP_SKILL.md`](XWF_MCP_SKILL.md).
+It defines the read-only workflow, token-efficient paging, evidence handling,
+and malware-safety boundaries. It does not grant either client access by itself;
+the MCP server and client configuration must still be installed separately.
