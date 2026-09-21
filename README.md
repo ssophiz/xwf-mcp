@@ -69,7 +69,7 @@ transfer of a synthetic Korean filename. This is **not** an actual-XWF GUI test.
 - https://www.x-ways.net/forensics/x-tensions/XWF_functions.html
 - https://github.com/modelcontextprotocol/python-sdk
 
-No affiliation with or endorsement by X-Ways or any police agency.
+No affiliation with or endorsement by X-Ways.
 
 ## AI client skill instructions
 
