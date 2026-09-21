@@ -19,7 +19,8 @@ class Integration(unittest.IsolatedAsyncioTestCase):
             async with ClientSession(read, write) as client:
                 await client.initialize()
                 listed = await client.list_tools()
-                self.assertEqual({t.name for t in listed.tools}, {'bridge_status', 'selected_items'})
+                self.assertEqual({t.name for t in listed.tools},
+                                 {'bridge_status', 'selected_items', 'problem_definition'})
                 for _ in range(100):
                     status = await client.call_tool('bridge_status', {})
                     if json.loads(status.content[0].text)['listener_ready']: break

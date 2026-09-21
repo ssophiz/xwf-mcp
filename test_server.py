@@ -13,6 +13,7 @@ def packet():
 class Tests(unittest.TestCase):
     def setUp(self):
         server.snapshot = None
+        server.problem = None
 
     def test_roundtrip(self):
         obj = packet(); server.accept(json.dumps(obj).encode())
@@ -35,6 +36,16 @@ class Tests(unittest.TestCase):
         with patch('server.time.monotonic', return_value=server.received + 301):
             self.assertFalse(server.selected_items()['available'])
         with self.assertRaises(ValueError): server.selected_items(limit=101)
+
+    def test_problem_definition_and_projection(self):
+        result = server.problem_definition(
+            'find suspicious executables', 'approved XWF selection',
+            'read-only; no execution', 'compact candidate table', 'ELF,script')
+        self.assertTrue(result['accepted'])
+        server.accept(json.dumps(packet()).encode())
+        projected = server.selected_items(fields='id,name')
+        self.assertEqual(set(projected['items'][0]), {'id', 'name'})
+        with self.assertRaises(ValueError): server.selected_items(fields='content')
 
 
 if __name__ == '__main__': unittest.main()

@@ -100,3 +100,48 @@ YARA/PE/ELF 정적 분석, 타임라인 생성은 별도 도구로 추가해야 
 - [XWF-MCP 저장소](https://github.com/ssophiz/xwf-mcp)
 - [OpenAI: Developer mode and MCP apps in ChatGPT](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt)
 - [OpenAI: Secure MCP Tunnel](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)
+
+## Problem definition and token-efficient MCP workflow
+
+Start each investigation by creating a short in-memory brief. Do not place file
+contents, credentials, private keys, or unnecessary personal data in it.
+
+```text
+problem_definition(
+  objective="find suspicious executables",
+  scope="user-approved XWF selection",
+  constraints="read-only; do not execute or contact indicators",
+  requested_output="compact candidate table with evidence",
+  artifact_types="ELF, PE, scripts"
+)
+```
+
+The tool returns only a `problem_id`; keep that ID in the conversation instead
+of repeating the complete brief. Then use this sequence:
+
+```text
+problem_definition -> bridge_status -> selected_items(fields="id,name")
+-> candidate selection -> selected_items(fields="id,name,size")
+```
+
+Use small pages (`limit=25` or less) and retain the returned `capture_id` when
+requesting the next page. The current allowed projections are `id`, `name`, and
+`size`. This keeps the context small and prevents raw evidence contents from
+being sent to the model.
+
+### Client instruction prompt
+
+After enabling the XWF MCP app in Claude or ChatGPT, use:
+
+```text
+Use xwf-mcp. First call problem_definition with the objective, scope,
+read-only constraints, and compact output format. Then call bridge_status.
+If a fresh snapshot exists, call selected_items with fields="id,name" and
+small pages. Do not request file contents, execute evidence, or contact any
+indicator. Expand to fields="id,name,size" only for shortlisted items.
+```
+
+ChatGPT web requires a remote HTTPS MCP endpoint or Secure MCP Tunnel; it cannot
+connect directly to this local stdio server. Claude Desktop can use the local
+stdio configuration above. The provider-neutral behavior rules are in
+[`XWF_MCP_SKILL.md`](XWF_MCP_SKILL.md).
