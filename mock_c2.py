@@ -5,13 +5,17 @@ systems and hostnames you control. The default bind address is loopback.
 """
 import argparse
 import json
+import platform
+import shutil
 import threading
+import time
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
 EVENTS = []
 EVENTS_LOCK = threading.Lock()
+STARTED = time.time()
 
 INDEX = """<!doctype html><meta charset="utf-8">
 <title>Mock C2 Console</title>
@@ -41,6 +45,17 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/events":
             with EVENTS_LOCK:
                 body = json.dumps(EVENTS[-100:], ensure_ascii=False)
+            self._send(200, body, "application/json; charset=utf-8")
+            return
+        if parsed.path == "/api/diagnostics":
+            usage = shutil.disk_usage(".")
+            body = json.dumps({
+                "hostname": platform.node(),
+                "python": platform.python_version(),
+                "uptime_seconds": round(time.time() - STARTED, 1),
+                "disk_free_bytes": usage.free,
+                "mode": "read-only diagnostics",
+            }, ensure_ascii=False)
             self._send(200, body, "application/json; charset=utf-8")
             return
         if parsed.path == "/healthz":

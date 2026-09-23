@@ -36,3 +36,7 @@ Open `http://127.0.0.1:8080/` in a browser. The page is a read-only dashboard
 that refreshes `/api/events` every two seconds. It shows request time, client
 address, path, and query parameters. It has no command runner, shell, upload,
 or outbound-network feature.
+
+`/api/diagnostics` returns only allowlisted read-only values: hostname, Python
+version, process uptime, and free disk space. It does not accept a command or
+argument to execute.
