@@ -91,9 +91,9 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     parser = argparse.ArgumentParser(description="Safe local mock C2 HTTP endpoint")
     parser.add_argument(
-        "--host",
+        "--host", "--domain", dest="host",
         default="127.0.0.1",
-        help="bind hostname/address; default is loopback (127.0.0.1)",
+        help="bind hostname/address/domain; default is loopback (127.0.0.1)",
     )
     parser.add_argument("--port", type=int, default=8080)
     args = parser.parse_args()
