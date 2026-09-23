@@ -10,23 +10,28 @@ Run with the default loopback hostname:
 python .\mock_c2.py
 ```
 
-Specify a hostname that belongs to the isolated lab and that the operator is
-authorized to bind:
+Use `--domain` for the expected HTTP Host header and `--bind` for the local
+interface. The domain is not resolved or contacted by this program:
 
 ```powershell
-python .\mock_c2.py --domain lab-c2.local
+python .\mock_c2.py --domain lab-c2.local --bind 127.0.0.1
 ```
 
-`--host`와 `--domain`은 같은 옵션이다. 입력한 이름은 이 컴퓨터의 로컬
-네트워크 인터페이스로 해석되어야 한다. 외부 도메인을 입력한다고 DNS가
-자동으로 이 서버를 가리키지는 않는다.
+Add the lab name to the hosts file so it resolves locally, for example:
+
+```text
+127.0.0.1 lab-c2.local
+```
+
+The server accepts only requests whose `Host` header matches `--domain`; a
+different host receives HTTP 421. It never performs DNS lookups for the domain.
 
 관찰된 샘플 URL의 기본 포트는 HTTP `80`, HTTPS `443`이지만, 모의 서버의
 기본 포트는 권한 충돌을 피하기 위해 `8080`이다. 실습 환경에서 포트를
 명시하려면 다음처럼 사용한다.
 
 ```powershell
-python .\mock_c2.py --domain lab-c2.local --port 8080
+python .\mock_c2.py --domain lab-c2.local --bind 127.0.0.1 --port 8080
 ```
 
 80/443을 사용하려면 해당 포트가 비어 있고 관리자 권한이 있는지 확인해야

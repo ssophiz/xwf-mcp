@@ -36,9 +36,14 @@ refresh(); setInterval(refresh,2000);
 
 class Handler(BaseHTTPRequestHandler):
     response_text = "Write-Output 'MOCK_C2_RESPONSE'"
+    allowed_domain = None
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        request_host = (self.headers.get("Host") or "").split(":", 1)[0].lower()
+        if self.allowed_domain and request_host != self.allowed_domain.lower():
+            self._send(421, "wrong host\n", "text/plain; charset=utf-8")
+            return
         if parsed.path == "/":
             self._send(200, INDEX, "text/html; charset=utf-8")
             return
@@ -68,6 +73,7 @@ class Handler(BaseHTTPRequestHandler):
         event = {
             "time_utc": datetime.now(timezone.utc).isoformat(),
             "client": self.client_address[0],
+            "host": request_host,
             "path": parsed.path,
             "query": parse_qs(parsed.query, keep_blank_values=True),
         }
@@ -90,19 +96,23 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     parser = argparse.ArgumentParser(description="Safe local mock C2 HTTP endpoint")
-    parser.add_argument(
-        "--host", "--domain", dest="host",
-        default="127.0.0.1",
-        help="bind hostname/address/domain; default is loopback (127.0.0.1)",
-    )
+    parser.add_argument("--bind", default="127.0.0.1",
+                        help="local bind address; default is loopback")
+    parser.add_argument("--host", dest="bind_compat",
+                        help="deprecated alias for --bind")
+    parser.add_argument("--domain", default="",
+                        help="expected HTTP Host header, not a bind address")
     parser.add_argument("--port", type=int, default=8080)
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
         parser.error("port must be between 1 and 65535")
 
     Handler.response_text = "Write-Output 'MOCK_C2_RESPONSE'"
-    server = ThreadingHTTPServer((args.host, args.port), Handler)
-    print(f"mock endpoint listening on http://{args.host}:{args.port}/setting.php")
+    bind = args.bind_compat or args.bind
+    Handler.allowed_domain = args.domain.strip().lower() or None
+    server = ThreadingHTTPServer((bind, args.port), Handler)
+    shown = args.domain or bind
+    print(f"mock endpoint listening on http://{shown}:{args.port}/setting.php")
     print("safe mode: no command execution, no outbound requests")
     try:
         server.serve_forever()
